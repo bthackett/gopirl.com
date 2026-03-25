@@ -3,432 +3,701 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pirl — pitch in real life</title>
+<title>Pirl — Pitch in real life</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
   :root {
-    --purple:      #BF5FFF;
+    --off-white: #FAF8FF;
+    --purple: #BF5FFF;
     --purple-deep: #7B1FA2;
-    --purple-dim:  rgba(191,95,255,0.12);
-    --bg:          #0e0b14;
-    --bg-card:     #161020;
-    --ink:         #ffffff;
-    --ink-mid:     rgba(255,255,255,0.6);
-    --ink-dim:     rgba(255,255,255,0.35);
-    --rule:        rgba(255,255,255,0.08);
-    --font:        'Manrope', system-ui, sans-serif;
+    --purple-dim: #F3ECFF;
+    --black: #18181B;
+    --text: #18181B;
+    --muted: #6B6B7B;
+    --border: #E8E0F0;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { font-size: 16px; scroll-behavior: smooth; }
-  body { font-family: var(--font); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  html { scroll-behavior: smooth; }
 
-  /* NOISE TEXTURE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    opacity: 0.4;
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    overflow-x: hidden;
   }
 
-  /* GLOW ORBS */
-  .orb {
-    position: fixed; border-radius: 50%;
-    filter: blur(120px); pointer-events: none; z-index: 0;
-  }
-  .orb-1 { width: 600px; height: 600px; background: rgba(191,95,255,0.15); top: -200px; right: -150px; }
-  .orb-2 { width: 400px; height: 400px; background: rgba(123,31,162,0.12); bottom: 10%; left: -100px; }
-
-  /* NAV */
+  /* ── NAV ── */
   nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 0 48px; height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(14,11,20,0.8); backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--rule);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(250, 248, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
   }
-  .nav-logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: var(--purple); text-decoration: none; }
-  .nav-logo span { color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 10px; vertical-align: middle; }
-  .nav-cta { background: var(--purple); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; padding: 9px 20px; border-radius: 100px; text-decoration: none; transition: background 0.2s; }
+
+  .nav-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--purple);
+    letter-spacing: -0.5px;
+    text-decoration: none;
+  }
+
+  .nav-tagline {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .nav-cta {
+    background: var(--black);
+    color: #fff;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s;
+    letter-spacing: 0.3px;
+  }
+
   .nav-cta:hover { background: var(--purple-deep); }
 
-  /* HERO */
+  /* ── HERO ── */
   .hero {
-    position: relative; z-index: 1;
     min-height: 100vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     align-items: center;
-    max-width: 1100px;
+    padding: 120px 48px 80px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 100px 48px 80px;
-    gap: 64px;
+    gap: 80px;
   }
 
-  .hero-left { display: flex; flex-direction: column; gap: 0; }
+  .hero-left { flex: 1; }
 
   .hero-eyebrow {
-    font-size: 11px; font-weight: 700; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--purple);
-    margin-bottom: 20px; display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--purple-dim);
+    color: var(--purple-deep);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 28px;
   }
 
-  .hero h1 {
-    font-size: clamp(42px, 5vw, 68px);
-    font-weight: 800; line-height: 1.05;
-    letter-spacing: -1.5px; color: #fff;
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--purple);
+  }
+
+  .hero-headline {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    color: var(--black);
     margin-bottom: 24px;
   }
 
-  .hero h1 em { font-style: normal; color: var(--purple); }
-
-  .hero-sub {
-    font-size: 17px; line-height: 1.75;
-    color: var(--ink-mid); font-weight: 400;
-    margin-bottom: 40px; max-width: 440px;
+  .hero-headline em {
+    font-style: normal;
+    color: var(--purple);
   }
 
-  /* SOCIAL PROOF */
-  .social-proof {
-    display: flex; align-items: center; gap: 12px;
+  .hero-body {
+    font-size: 17px;
+    line-height: 1.75;
+    color: var(--muted);
+    max-width: 480px;
     margin-bottom: 40px;
   }
-  .avatars { display: flex; }
-  .avatars span {
-    width: 32px; height: 32px; border-radius: 50%;
-    border: 2px solid var(--bg);
-    margin-right: -10px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700;
-  }
-  .av1 { background: #FF6B6B; }
-  .av2 { background: #4ECDC4; }
-  .av3 { background: #45B7D1; }
-  .av4 { background: var(--purple); }
-  .social-text { font-size: 13px; color: var(--ink-mid); font-weight: 500; }
-  .social-text strong { color: #fff; font-weight: 700; }
 
-  /* CTA GROUP */
-  .cta-group { display: flex; flex-direction: column; gap: 12px; max-width: 360px; }
+  .hero-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 460px;
+  }
 
-  .email-form {
-    display: flex; gap: 0;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 100px; padding: 6px 6px 6px 20px;
-    transition: border-color 0.2s;
+  .hero-form input {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    padding: 14px 18px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
   }
-  .email-form:focus-within { border-color: var(--purple); }
-  .email-form input {
-    flex: 1; background: none; border: none; outline: none;
-    font-family: var(--font); font-size: 14px; font-weight: 500;
-    color: #fff; min-width: 0;
-  }
-  .email-form input::placeholder { color: var(--ink-dim); }
-  .email-form button {
-    background: var(--purple); color: #fff; border: none; cursor: pointer;
-    font-family: var(--font); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.3px; padding: 10px 22px; border-radius: 100px;
-    transition: background 0.2s; white-space: nowrap;
-  }
-  .email-form button:hover { background: var(--purple-deep); }
 
-  .divider-row {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .divider-line { flex: 1; height: 1px; background: var(--rule); }
-  .divider-text { font-size: 11px; color: var(--ink-dim); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .hero-form input:focus { border-color: var(--purple); }
+  .hero-form input::placeholder { color: #aaa; }
 
-  .app-store-btn {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 100px; padding: 10px 20px;
-    text-decoration: none; transition: border-color 0.2s, background 0.2s;
-    width: fit-content;
+  .hero-form button {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px 24px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
   }
-  .app-store-btn:hover { border-color: var(--purple); background: rgba(191,95,255,0.08); }
-  .app-store-btn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
-  .app-store-btn-text { display: flex; flex-direction: column; }
-  .app-store-btn-text .line1 { font-size: 10px; color: var(--ink-dim); font-weight: 500; letter-spacing: 0.5px; }
-  .app-store-btn-text .line2 { font-size: 14px; color: #fff; font-weight: 700; letter-spacing: -0.3px; }
 
-  /* PHONE MOCKUP */
+  .hero-form button:hover { background: var(--purple-deep); }
+
+  .hero-fine {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.6;
+  }
+
+  .hero-fine a { color: var(--purple); text-decoration: none; }
+
+  /* ── PHONE MOCKUP ── */
   .hero-right {
-    display: flex; justify-content: center; align-items: center;
-    position: relative;
-  }
-
-  .phone-wrap {
-    position: relative;
-    width: 280px;
-    animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-16px); }
+    flex: 0 0 320px;
+    display: flex;
+    justify-content: center;
   }
 
   .phone-frame {
-    width: 280px; height: 560px;
-    background: #1a1025;
+    width: 280px;
+    background: #1a1a1f;
     border-radius: 44px;
-    border: 2px solid rgba(255,255,255,0.12);
-    overflow: hidden;
+    padding: 14px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.08),
+      0 32px 80px rgba(139, 53, 204, 0.18),
+      0 8px 24px rgba(0,0,0,0.12);
     position: relative;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1);
   }
 
-  /* Dynamic island */
-  .phone-frame::before {
-    content: '';
-    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-    width: 90px; height: 26px;
-    background: #000; border-radius: 20px; z-index: 10;
+  .phone-notch {
+    width: 90px;
+    height: 28px;
+    background: #1a1a1f;
+    border-radius: 0 0 18px 18px;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 2;
   }
 
   .phone-screen {
-    width: 100%; height: 100%;
-    background: linear-gradient(160deg, #2d1b4e 0%, #0e0b14 60%);
-    display: flex; flex-direction: column;
-    padding: 56px 20px 24px;
+    background: #0d0d10;
+    border-radius: 32px;
+    overflow: hidden;
+    aspect-ratio: 9/19.5;
+    display: flex;
+    flex-direction: column;
   }
 
-  .app-wordmark { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; color: var(--purple); margin-bottom: 16px; }
+  /* App UI inside phone */
+  .app-splash {
+    flex: 1;
+    padding: 28px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(160deg, #0d0d10 0%, #130a1a 100%);
+  }
 
-  .app-headline { font-size: 22px; font-weight: 800; line-height: 1.15; letter-spacing: -0.5px; color: #fff; margin-bottom: 10px; }
+  .app-wordmark {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--purple);
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+  }
 
-  .app-sub { font-size: 11px; line-height: 1.6; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+  .app-hero-text {
+    flex: 1;
+  }
 
-  .app-avatars { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; }
-  .app-avatar-stack { display: flex; }
-  .app-avatar-stack span { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #1a1025; margin-right: -8px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
-  .app-count { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; margin-left: 12px; }
-
-  .app-input-mock {
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 14px; padding: 12px 16px;
-    font-size: 12px; color: rgba(255,255,255,0.4);
+  .app-hero-text h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
     margin-bottom: 10px;
   }
 
+  .app-hero-text p {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .app-trust {
+    font-size: 10px;
+    color: #555;
+    margin: 16px 0;
+    font-style: italic;
+  }
+
+  .app-input-mock {
+    background: #1a1a1f;
+    border: 1px solid #2a2a30;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #444;
+    margin-bottom: 8px;
+  }
+
   .app-btn-mock {
-    background: var(--purple); border-radius: 14px;
-    padding: 13px 16px; text-align: center;
-    font-size: 13px; font-weight: 700; color: #fff;
-  }
-
-  .phone-glow {
-    position: absolute;
-    width: 320px; height: 320px;
-    background: radial-gradient(circle, rgba(191,95,255,0.25) 0%, transparent 70%);
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    pointer-events: none; z-index: -1;
-  }
-
-  /* HOW IT WORKS */
-  .section {
-    position: relative; z-index: 1;
-    max-width: 1100px; margin: 0 auto;
-    padding: 80px 48px;
-    border-top: 1px solid var(--rule);
-  }
-
-  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--purple); display: block; margin-bottom: 12px; }
-  .section-heading { font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -0.8px; line-height: 1.15; color: #fff; margin-bottom: 52px; max-width: 560px; }
-
-  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  .step-card {
-    background: var(--bg-card); border: 1px solid var(--rule);
-    border-radius: 16px; padding: 32px 28px;
-    transition: border-color 0.2s;
-  }
-  .step-card:hover { border-color: rgba(191,95,255,0.4); }
-  .step-num { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--purple); margin-bottom: 16px; display: block; }
-  .step-card h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; color: #fff; margin-bottom: 10px; }
-  .step-card p { font-size: 14px; line-height: 1.75; color: var(--ink-mid); }
-
-  /* BOTTOM CTA */
-  .bottom-cta {
-    position: relative; z-index: 1;
+    background: var(--purple);
+    border-radius: 8px;
+    padding: 10px;
     text-align: center;
-    padding: 80px 48px 100px;
-    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
   }
-  .bottom-cta h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; letter-spacing: -1px; color: #fff; margin-bottom: 16px; }
-  .bottom-cta p { font-size: 16px; color: var(--ink-mid); margin-bottom: 40px; }
-  .bottom-cta-form {
-    display: flex; gap: 0; max-width: 400px; margin: 0 auto 16px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 100px; padding: 6px 6px 6px 20px;
+
+  /* ── SCREENSHOT SLOT ── */
+  .screenshot-slot {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 32px;
+  }
+
+  .screenshot-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 11px;
+    text-align: center;
+    padding: 20px;
+    gap: 8px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .section {
+    padding: 100px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.15;
+    color: var(--black);
+    margin-bottom: 16px;
+    max-width: 600px;
+  }
+
+  .section-sub {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 520px;
+    margin-bottom: 60px;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .step {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    position: relative;
+    transition: box-shadow 0.2s;
+  }
+
+  .step:hover {
+    box-shadow: 0 8px 32px rgba(191, 95, 255, 0.08);
+  }
+
+  .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--purple-dim);
+    color: var(--purple-deep);
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .step h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+
+  .step p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ── WHY PIRL ── */
+  .why-section {
+    background: var(--black);
+    padding: 100px 48px;
+  }
+
+  .why-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .why-section .section-eyebrow { color: var(--purple); }
+  .why-section .section-title { color: #fff; }
+  .why-section .section-sub { color: #888; }
+
+  .reasons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .reason {
+    background: #1a1a1f;
+    border: 1px solid #2a2a30;
+    border-radius: 16px;
+    padding: 28px;
     transition: border-color 0.2s;
   }
-  .bottom-cta-form:focus-within { border-color: var(--purple); }
-  .bottom-cta-form input { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 14px; color: #fff; min-width: 0; }
-  .bottom-cta-form input::placeholder { color: var(--ink-dim); }
-  .bottom-cta-form button { background: var(--purple); color: #fff; border: none; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 700; padding: 10px 22px; border-radius: 100px; transition: background 0.2s; }
-  .bottom-cta-form button:hover { background: var(--purple-deep); }
-  .bottom-cta-fine { font-size: 12px; color: var(--ink-dim); }
 
-  /* FOOTER */
-  footer {
-    position: relative; z-index: 1;
-    border-top: 1px solid var(--rule);
-    padding: 24px 48px;
-    max-width: 1100px; margin: 0 auto;
-    display: flex; justify-content: space-between; align-items: center;
+  .reason:hover { border-color: #3a2a4a; }
+
+  .reason-icon {
+    font-size: 24px;
+    margin-bottom: 14px;
   }
-  .footer-logo { font-size: 15px; font-weight: 800; color: var(--purple); letter-spacing: -0.3px; }
-  .footer-links { display: flex; gap: 28px; }
-  .footer-links a { font-size: 12px; color: var(--ink-dim); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+
+  .reason h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+  }
+
+  .reason p {
+    font-size: 13.5px;
+    color: #666;
+    line-height: 1.7;
+  }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    padding: 120px 48px;
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .cta-section .section-eyebrow { text-align: center; }
+  .cta-section .section-title { max-width: 100%; text-align: center; margin: 0 auto 16px; }
+  .cta-section .section-sub { text-align: center; margin: 0 auto 48px; }
+
+  .cta-form {
+    display: flex;
+    gap: 10px;
+    max-width: 460px;
+    margin: 0 auto 16px;
+  }
+
+  .cta-form input {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    padding: 14px 18px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .cta-form input:focus { border-color: var(--purple); }
+  .cta-form input::placeholder { color: #aaa; }
+
+  .cta-form button {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px 24px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+
+  .cta-form button:hover { background: var(--purple-deep); }
+
+  .cta-fine {
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  .cta-fine a { color: var(--purple); text-decoration: none; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .footer-logo { font-size: 16px; font-weight: 700; color: var(--purple); }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
   .footer-links a:hover { color: var(--purple); }
-  .footer-copy { font-size: 12px; color: var(--ink-dim); }
 
-  /* FADE IN */
-  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
-  .fade-in.visible { opacity: 1; transform: translateY(0); }
-  .fade-in.delay-1 { transition-delay: 0.1s; }
-  .fade-in.delay-2 { transition-delay: 0.2s; }
-  .fade-in.delay-3 { transition-delay: 0.3s; }
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-  /* RESPONSIVE */
-  @media (max-width: 768px) {
-    nav { padding: 0 24px; }
-    .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 48px; min-height: auto; }
-    .hero-right { order: -1; }
-    .phone-wrap { width: 220px; }
-    .phone-frame { width: 220px; height: 440px; border-radius: 36px; }
+  .hero-left > * {
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-eyebrow { animation-delay: 0.1s; }
+  .hero-headline { animation-delay: 0.2s; }
+  .hero-body { animation-delay: 0.3s; }
+  .hero-form { animation-delay: 0.4s; }
+  .hero-fine { animation-delay: 0.5s; }
+
+  .hero-right {
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-tagline { display: none; }
+    .hero { flex-direction: column; padding: 100px 24px 60px; gap: 48px; }
+    .hero-right { width: 100%; justify-content: center; }
     .section { padding: 60px 24px; }
-    .steps-grid { grid-template-columns: 1fr; }
-    .bottom-cta { padding: 60px 24px 80px; }
+    .steps { grid-template-columns: 1fr; }
+    .reasons { grid-template-columns: 1fr; }
+    .why-section { padding: 60px 24px; }
+    .cta-section { padding: 60px 24px; }
+    .cta-form { flex-direction: column; }
     footer { flex-direction: column; gap: 16px; text-align: center; padding: 24px; }
-    .footer-links { flex-wrap: wrap; justify-content: center; }
   }
 </style>
 </head>
 <body>
 
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-
+<!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">pirl <span>pitch in real life</span></a>
+  <a href="/" class="nav-logo">pirl</a>
+  <span class="nav-tagline">Pitch in real life</span>
   <a href="#signup" class="nav-cta">Get early access</a>
 </nav>
 
-<section class="hero">
-  <div class="hero-left fade-in">
-    <span class="hero-eyebrow">Now in early access</span>
-    <h1>Skip the resume.<br><em>Pitch</em> in real life.</h1>
-    <p class="hero-sub">Video-first job search for Customer Success professionals. Record a 60-second pitch and get in front of early-stage founders — no cold applications, no resume black holes.</p>
-
-    <div class="social-proof fade-in delay-1">
-      <div class="avatars">
-        <span class="av1">S</span>
-        <span class="av2">M</span>
-        <span class="av3">J</span>
-        <span class="av4">K</span>
-      </div>
-      <p class="social-text"><strong>200+ CS pros</strong> already inside</p>
-    </div>
-
-    <div class="cta-group fade-in delay-2" id="signup">
-      <form class="email-form" onsubmit="return false;">
-        <input type="email" placeholder="Enter your email" />
-        <button type="submit">Send magic link</button>
+<!-- HERO -->
+<section style="background: var(--off-white);">
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Now in early access</div>
+      <h1 class="hero-headline">
+        Skip the resume.<br>
+        <em>Pitch</em> in real life.
+      </h1>
+      <p class="hero-body">
+        Record a 60-second video pitch and get in front of founders at high-growth startups — no cold applications, no resume black holes, no recruiters in the middle.
+      </p>
+      <form class="hero-form" id="signup" onsubmit="handleSignup(event)">
+        <input type="email" placeholder="your@email.com" required id="hero-email" />
+        <button type="submit">Get early access</button>
       </form>
-      <div class="divider-row">
-        <div class="divider-line"></div>
-        <span class="divider-text">or</span>
-        <div class="divider-line"></div>
-      </div>
-      <a href="#" class="app-store-btn">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-        <div class="app-store-btn-text">
-          <span class="line1">Download on the</span>
-          <span class="line2">App Store</span>
-        </div>
-      </a>
+      <p class="hero-fine">
+        Free for candidates. By signing up you agree to our
+        <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms</a>.
+      </p>
     </div>
-  </div>
 
-  <div class="hero-right fade-in delay-2">
-    <div class="phone-wrap">
-      <div class="phone-glow"></div>
+    <div class="hero-right">
+      <!-- Replace the div below with an <img> tag pointing to your real screenshot -->
+      <!-- <img src="screenshot-profile.png" alt="Pirl app" class="screenshot-slot" style="width:280px; border-radius:44px;"> -->
       <div class="phone-frame">
+        <div class="phone-notch"></div>
         <div class="phone-screen">
-          <div class="app-wordmark">PIRL</div>
-          <div class="app-headline">Skip the resume.<br>Pitch in<br>real life.</div>
-          <div class="app-sub">Video-first job search for Customer Success professionals. Get in front of founders building out their post-sale teams.</div>
-          <div class="app-avatars">
-            <div class="app-avatar-stack">
-              <span class="av1">S</span>
-              <span class="av2">M</span>
-              <span class="av3">J</span>
+          <div class="app-splash">
+            <div class="app-wordmark">pirl</div>
+            <div class="app-hero-text">
+              <h2>Skip the resume.<br>Pitch in real life.</h2>
+              <p>Video-first job search for high-growth startups. Get in front of founders who move fast.</p>
             </div>
-            <span class="app-count">200+ CS pros already inside</span>
+            <p class="app-trust">Built on personal introductions, not algorithms.</p>
+            <div class="app-input-mock">your@email.com</div>
+            <div class="app-btn-mock">Send magic link</div>
           </div>
-          <div class="app-input-mock">blake.hackett@gmail.com</div>
-          <div class="app-btn-mock">Send magic link</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section fade-in">
-  <span class="section-label">How it works</span>
-  <h2 class="section-heading">Three clips. No resume required.</h2>
-  <div class="steps-grid">
-    <div class="step-card fade-in">
-      <span class="step-num">01</span>
-      <h3>Record your pitch</h3>
-      <p>A 60-second intro, a career highlight, and a live AI workflow demo. Show founders who you actually are — not just what fits on a page.</p>
-    </div>
-    <div class="step-card fade-in delay-1">
-      <span class="step-num">02</span>
-      <h3>Get curated</h3>
-      <p>We manually review every profile. The best matches get surfaced directly to founders — no algorithm, no black hole, no ghosting.</p>
-    </div>
-    <div class="step-card fade-in delay-2">
-      <span class="step-num">03</span>
-      <h3>Meet founders directly</h3>
-      <p>When a founder wants to meet you, they send a direct interview invitation. Skip the recruiter screen. Skip the endless loops.</p>
+<!-- HOW IT WORKS -->
+<section style="background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section">
+    <p class="section-eyebrow">How it works</p>
+    <h2 class="section-title">Three videos. Direct to founders.</h2>
+    <p class="section-sub">No job description required. No recruiter in the middle. Just you, on video, in front of the people making hiring decisions.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Record your pitch</h3>
+        <p>A 60-second intro, a career highlight, and a quick AI workflow demo. Three short videos that show founders what a resume never could.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Get discovered</h3>
+        <p>Your profile goes in front of founders at high-growth startups who are actively hiring for GTM, CS, and technical roles. Every candidate is reviewed before they're shown.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Receive direct invites</h3>
+        <p>When a founder wants to meet you, they send a direct interview invitation — with a personal message. No black hole. No waiting. Just a real conversation.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="bottom-cta fade-in">
-  <h2>Ready to pitch?</h2>
-  <p>Join 200+ CS professionals already on pirl.</p>
-  <form class="bottom-cta-form" onsubmit="return false;">
-    <input type="email" placeholder="Enter your email" />
-    <button type="submit">Get access</button>
+<!-- WHY PIRL -->
+<section class="why-section">
+  <div class="why-inner">
+    <p class="section-eyebrow">Why Pirl</p>
+    <h2 class="section-title" style="color:#fff;">Resumes flatten people. Video doesn't.</h2>
+    <p class="section-sub">The best candidates at high-growth startups aren't always the ones with the best-looking resumes. Pirl fixes that.</p>
+    <div class="reasons">
+      <div class="reason">
+        <div class="reason-icon">◎</div>
+        <h3>Show conviction, not credentials</h3>
+        <p>Founders make gut-level hiring decisions. A 60-second video shows them more about how you think and communicate than any bullet point ever could.</p>
+      </div>
+      <div class="reason">
+        <div class="reason-icon">◈</div>
+        <h3>Skip the recruiter layer</h3>
+        <p>No middlemen, no keyword filtering, no ATS black holes. Your pitch goes directly in front of the person making the decision.</p>
+      </div>
+      <div class="reason">
+        <div class="reason-icon">◇</div>
+        <h3>Demonstrate your AI fluency</h3>
+        <p>We ask candidates to show how they use AI — not just claim they're comfortable with it. A live demo is a category of signal that doesn't exist anywhere else in hiring.</p>
+      </div>
+      <div class="reason">
+        <div class="reason-icon">○</div>
+        <h3>Curated, not algorithmic</h3>
+        <p>Every candidate is reviewed by hand before appearing in the founder feed. Built on personal introductions, not matching scores.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <p class="section-eyebrow">Early access</p>
+  <h2 class="section-title">Your next role starts with a 60-second pitch.</h2>
+  <p class="section-sub">Pirl is invite-only and growing. Sign up to be considered for early access.</p>
+  <form class="cta-form" onsubmit="handleSignup(event)">
+    <input type="email" placeholder="your@email.com" required id="cta-email" />
+    <button type="submit">Get early access</button>
   </form>
-  <p class="bottom-cta-fine">Free to join. No resume required.</p>
+  <p class="cta-fine">Free for candidates. <a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms</a></p>
 </div>
 
+<!-- FOOTER -->
 <footer>
   <span class="footer-logo">pirl</span>
   <div class="footer-links">
-    <a href="https://blakehackett.com">blakehackett.com</a>
-    <a href="mailto:blake@blakehackett.com">Contact</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="mailto:blake@gopirl.com">Contact</a>
   </div>
-  <span class="footer-copy">&copy; 2026 pirl / Monosearch LLC</span>
 </footer>
 
 <script>
-(function() {
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) { e.target.classList.add('visible'); }
-    });
-  }, { threshold: 0.08 });
-  document.querySelectorAll('.fade-in').forEach(function(el) { io.observe(el); });
-})();
+  function handleSignup(e) {
+    e.preventDefault()
+    const emailInput = e.target.querySelector('input[type="email"]')
+    const email = emailInput.value.trim()
+    if (!email) return
+
+    // Replace this URL with your actual magic link endpoint or Supabase signInWithOtp call
+    // For now, redirect to the app with the email pre-filled
+    window.location.href = `https://gopirl.com/app?email=${encodeURIComponent(email)}`
+  }
 </script>
 
 </body>
