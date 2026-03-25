@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pirl — Candidate Review</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --purple: #BF5FFF;
+    --purple-deep: #7B1FA2;
+    --purple-dim: #1a0a2e;
+    --black: #0a0a0a;
+    --surface: #111114;
+    --card: #16161a;
+    --border: #232328;
+    --text: #f0f0f0;
+    --muted: #666;
+    --subtle: #333;
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── AUTH GATE ── */
+  #auth-gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+  }
+
+  .auth-logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+
+  .auth-sub {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 36px;
+  }
+
+  .auth-box input {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .auth-box input:focus { border-color: var(--purple); }
+
+  .auth-box button {
+    width: 100%;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .auth-box button:hover { opacity: 0.85; }
+  .auth-error { color: #ff6b6b; font-size: 13px; margin-top: 10px; }
+
+  /* ── DASHBOARD ── */
+  #dashboard { display: none; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--black);
+    z-index: 10;
+  }
+
+  .topbar-logo { font-size: 18px; font-weight: 700; color: var(--purple); letter-spacing: -0.3px; }
+  .topbar-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .signout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .signout-btn:hover { border-color: var(--subtle); color: var(--text); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 24px 32px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  .tab-count {
+    background: var(--purple-dim);
+    color: var(--purple);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .tab.active .tab-count { background: var(--purple); color: #fff; }
+
+  /* ── CONTENT ── */
+  .content { padding: 32px; max-width: 1100px; margin: 0 auto; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── CANDIDATE GRID ── */
+  .candidate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    gap: 24px;
+  }
+
+  /* ── CANDIDATE CARD ── */
+  .candidate-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+
+  .candidate-card:hover { border-color: var(--subtle); }
+  .candidate-card.approved-card { border-color: #1a3a1a; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 20px 16px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--purple-dim);
+    border: 1px solid var(--purple-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--purple);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .card-info { flex: 1; min-width: 0; }
+
+  .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-headline {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .fn-badge {
+    background: var(--purple-dim);
+    color: var(--purple);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .location-text { font-size: 12px; color: var(--muted); }
+  .date-text { font-size: 12px; color: var(--muted); }
+  .dot { color: var(--subtle); font-size: 10px; }
+
+  .approved-badge {
+    background: #0d2e0d;
+    color: #4caf50;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  /* ── SKILLS ── */
+  .skills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 0 20px 16px;
+  }
+
+  .skill-pill {
+    background: #1a1a1f;
+    border: 1px solid var(--border);
+    color: #999;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 12px;
+  }
+
+  /* ── VIDEOS ── */
+  .videos-section { padding: 0 20px 16px; }
+
+  .videos-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .video-wrap { position: relative; }
+
+  .video-wrap video {
+    width: 100%;
+    aspect-ratio: 9/16;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #0a0a0a;
+    display: block;
+  }
+
+  .video-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 5px;
+    letter-spacing: 0.3px;
+  }
+
+  .no-video {
+    width: 100%;
+    aspect-ratio: 9/16;
+    border-radius: 8px;
+    background: #0d0d10;
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--subtle);
+    font-size: 18px;
+  }
+
+  /* ── ACTIONS ── */
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-approve {
+    flex: 1;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-approve:hover { opacity: 0.85; }
+
+  .btn-pass {
+    flex: 1;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-pass:hover { border-color: #ff6b6b; color: #ff6b6b; }
+
+  .btn-unapprove {
+    flex: 1;
+    background: none;
+    color: #4caf50;
+    border: 1px solid #1a3a1a;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-unapprove:hover { border-color: #4caf50; }
+
+  /* ── EMPTY / LOADING ── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state p { font-size: 15px; }
+
+  .loading {
+    text-align: center;
+    padding: 80px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: transform 0.25s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: #2a5a2a; color: #4caf50; }
+  .toast.error { border-color: #5a1a1a; color: #ff6b6b; }
+</style>
+</head>
+<body>
+
+<!-- AUTH GATE -->
+<div id="auth-gate">
+  <div class="auth-box">
+    <div class="auth-logo">pirl</div>
+    <div class="auth-sub">Candidate Review</div>
+    <input type="email" id="auth-email" placeholder="blake@gopirl.com" autocomplete="email" />
+    <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" />
+    <button onclick="handleLogin()">Sign in</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">pirl</div>
+      <div class="topbar-label">Candidate Review</div>
+    </div>
+    <div class="topbar-right">
+      <span id="topbar-email" style="font-size:12px;color:var(--muted);"></span>
+      <button class="signout-btn" onclick="handleSignOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('pending')" id="tab-pending">
+      Pending <span class="tab-count" id="count-pending">0</span>
+    </div>
+    <div class="tab" onclick="switchTab('approved')" id="tab-approved">
+      Approved <span class="tab-count" id="count-approved">0</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="tab-panel active" id="panel-pending">
+      <div class="loading" id="loading-pending">Loading candidates…</div>
+      <div class="candidate-grid" id="grid-pending"></div>
+    </div>
+    <div class="tab-panel" id="panel-approved">
+      <div class="loading" id="loading-approved" style="display:none;">Loading…</div>
+      <div class="candidate-grid" id="grid-approved"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── CONFIG — replace with your Supabase project values ──
+  const SUPABASE_URL = 'https://nqedtvaopxfjnjzipjtr.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xZWR0dmFvcHhmam5qemlwanRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjc3NjMsImV4cCI6MjA4ODc0Mzc2M30.mxRbYEJNSlai0k2qqVXga0VSuwQFRxWGo9o1bPaKTs4'
+
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  const FN_LABELS = { gtm: 'GTM', cs: 'Customer Success', technical: 'Technical' }
+  const VIDEO_LABELS = ['60s Intro', 'Career Highlight', 'AI in your workflow']
+
+  let pendingLoaded = false
+  let approvedLoaded = false
+
+  // ── AUTH ──
+  async function handleLogin() {
+    const email = document.getElementById('auth-email').value.trim()
+    const password = document.getElementById('auth-password').value
+    const errEl = document.getElementById('auth-error')
+    errEl.textContent = ''
+
+    const { error } = await sb.auth.signInWithPassword({ email, password })
+    if (error) { errEl.textContent = error.message; return }
+    showDashboard()
+  }
+
+  async function handleSignOut() {
+    await sb.auth.signOut()
+    document.getElementById('dashboard').style.display = 'none'
+    document.getElementById('auth-gate').style.display = 'flex'
+  }
+
+  document.getElementById('auth-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin()
+  })
+
+  async function showDashboard() {
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) return
+    document.getElementById('auth-gate').style.display = 'none'
+    document.getElementById('dashboard').style.display = 'block'
+    document.getElementById('topbar-email').textContent = user.email
+    loadPending()
+  }
+
+  // ── CHECK SESSION ON LOAD ──
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) showDashboard()
+  })
+
+  // ── TABS ──
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+    document.getElementById('tab-' + tab).classList.add('active')
+    document.getElementById('panel-' + tab).classList.add('active')
+    if (tab === 'approved' && !approvedLoaded) loadApproved()
+  }
+
+  // ── LOAD CANDIDATES ──
+  async function loadPending() {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('role', 'candidate')
+      .eq('profile_complete', true)
+      .eq('approved', false)
+      .order('created_at', { ascending: false })
+
+    document.getElementById('loading-pending').style.display = 'none'
+    if (error) { showToast('Error loading candidates', 'error'); return }
+    document.getElementById('count-pending').textContent = data.length
+    renderGrid('grid-pending', data, false)
+    pendingLoaded = true
+  }
+
+  async function loadApproved() {
+    document.getElementById('loading-approved').style.display = 'block'
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('role', 'candidate')
+      .eq('profile_complete', true)
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+
+    document.getElementById('loading-approved').style.display = 'none'
+    if (error) { showToast('Error loading candidates', 'error'); return }
+    document.getElementById('count-approved').textContent = data.length
+    renderGrid('grid-approved', data, true)
+    approvedLoaded = true
+  }
+
+  // ── RENDER ──
+  function renderGrid(gridId, candidates, isApproved) {
+    const grid = document.getElementById(gridId)
+    if (!candidates.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">◎</div>
+        <p>${isApproved ? 'No approved candidates yet.' : 'No pending candidates.'}</p>
+      </div>`
+      return
+    }
+    grid.innerHTML = candidates.map(c => renderCard(c, isApproved)).join('')
+  }
+
+  function renderCard(c, isApproved) {
+    const initials = (c.name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    const fnLabel = FN_LABELS[c.job_function] || ''
+    const skills = (c.skills || []).slice(0, 8)
+    const date = c.created_at ? new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
+    const videos = [c.video_1_url, c.video_2_url, c.video_3_url]
+
+    const avatarInner = c.avatar_url
+      ? `<img src="${c.avatar_url}" alt="${c.name}" />`
+      : initials
+
+    const skillsHtml = skills.length
+      ? `<div class="skills-row">${skills.map(s => `<span class="skill-pill">${s}</span>`).join('')}${c.skills?.length > 8 ? `<span class="skill-pill">+${c.skills.length - 8}</span>` : ''}</div>`
+      : ''
+
+    const videosHtml = videos.map((url, i) => `
+      <div class="video-wrap">
+        ${url
+          ? `<video src="${url}" controls playsinline preload="metadata"></video>`
+          : `<div class="no-video">+</div>`
+        }
+        <div class="video-label">${VIDEO_LABELS[i]}</div>
+      </div>
+    `).join('')
+
+    const actionsHtml = isApproved
+      ? `<button class="btn-unapprove" onclick="setApproval('${c.id}', false)">✓ Approved — Undo</button>`
+      : `<button class="btn-approve" onclick="setApproval('${c.id}', true)">Approve</button>
+         <button class="btn-pass" onclick="setApproval('${c.id}', false, true)">Pass</button>`
+
+    return `
+      <div class="candidate-card ${isApproved ? 'approved-card' : ''}" id="card-${c.id}">
+        <div class="card-header">
+          <div class="avatar">${avatarInner}</div>
+          <div class="card-info">
+            <div class="card-name">${c.name || 'No name'}</div>
+            <div class="card-headline">${c.headline || c.title || '—'}</div>
+            <div class="card-meta">
+              ${fnLabel ? `<span class="fn-badge">${fnLabel}</span>` : ''}
+              ${isApproved ? `<span class="approved-badge">Approved</span>` : ''}
+              ${c.location ? `<span class="location-text">${c.location}</span>` : ''}
+              ${date ? `<span class="dot">·</span><span class="date-text">${date}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        ${skillsHtml}
+        <div class="videos-section">
+          <div class="videos-label">Videos</div>
+          <div class="video-grid">${videosHtml}</div>
+        </div>
+        <div class="card-actions">${actionsHtml}</div>
+      </div>
+    `
+  }
+
+  // ── APPROVE / PASS ──
+  async function setApproval(userId, approved, isPass = false) {
+    const { error } = await sb
+      .from('profiles')
+      .update({ approved })
+      .eq('id', userId)
+
+    if (error) { showToast('Something went wrong', 'error'); return }
+
+    const card = document.getElementById('card-' + userId)
+    card.style.transition = 'opacity 0.3s'
+    card.style.opacity = '0'
+
+    setTimeout(() => {
+      card.remove()
+      updateCounts()
+      if (approved) showToast('Candidate approved ✓', 'success')
+      else if (isPass) showToast('Candidate passed')
+      else showToast('Approval removed')
+    }, 300)
+  }
+
+  function updateCounts() {
+    const pendingCount = document.getElementById('grid-pending').querySelectorAll('.candidate-card').length
+    const approvedCount = document.getElementById('grid-approved').querySelectorAll('.candidate-card').length
+    document.getElementById('count-pending').textContent = pendingCount
+    document.getElementById('count-approved').textContent = approvedCount
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.className = 'toast show ' + type
+    setTimeout(() => { t.className = 'toast ' + type }, 2500)
+  }
+</script>
+</body>
+</html>
