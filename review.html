@@ -666,16 +666,16 @@
 
   // ── APPROVE / PASS ──
   async function setApproval(userId, approved, isPass = false) {
-    const { error } = await sb
-      .from('profiles')
-      .update({ approved })
-      .eq('id', userId)
+  const updateData = approved
+    ? { approved: true, passed: false }
+    : isPass
+      ? { approved: false, passed: true }
+      : { approved: false, passed: false }
 
-    if (error) { showToast('Something went wrong', 'error'); return }
-
-    const card = document.getElementById('card-' + userId)
-    card.style.transition = 'opacity 0.3s'
-    card.style.opacity = '0'
+  const { error } = await sb
+    .from('profiles')
+    .update(updateData)
+    .eq('id', userId)
 
     setTimeout(() => {
       card.remove()
