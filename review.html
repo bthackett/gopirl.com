@@ -606,7 +606,7 @@
 }
 
   // ── RENDER ──
-  function renderGrid(gridId, candidates, isApproved) {
+  function renderGrid(gridId, candidates, isApproved, isPassed = false) {
     const grid = document.getElementById(gridId)
     if (!candidates.length) {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
@@ -615,10 +615,10 @@
       </div>`
       return
     }
-    grid.innerHTML = candidates.map(c => renderCard(c, isApproved)).join('')
+    grid.innerHTML = candidates.map(c => renderCard(c, isApproved, isPassed)).join('')
   }
 
-  function renderCard(c, isApproved) {
+  function renderCard(c, isApproved, isPassed = false) {
     const initials = (c.name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     const fnLabel = FN_LABELS[c.job_function] || ''
     const skills = (c.skills || []).slice(0, 8)
@@ -644,9 +644,11 @@
     `).join('')
 
     const actionsHtml = isApproved
-      ? `<button class="btn-unapprove" onclick="setApproval('${c.id}', false)">✓ Approved — Undo</button>`
-      : `<button class="btn-approve" onclick="setApproval('${c.id}', true)">Approve</button>
-         <button class="btn-pass" onclick="setApproval('${c.id}', false, true)">Pass</button>`
+      ? `<button class="btn-unapprove" onclick="setApproval('${c.id}', false, false)">✓ Approved — Undo</button>`
+      : isPassed
+        ? `<button class="btn-approve" onclick="setApproval('${c.id}', true, false)">Approve after all</button>`
+        : `<button class="btn-approve" onclick="setApproval('${c.id}', true)">Approve</button>
+        <button class="btn-pass" onclick="setApproval('${c.id}', false, true)">Pass</button>`
 
     return `
       <div class="candidate-card ${isApproved ? 'approved-card' : ''}" id="card-${c.id}">
