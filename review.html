@@ -544,12 +544,13 @@
 
   // ── TABS ──
   function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
-    document.getElementById('tab-' + tab).classList.add('active')
-    document.getElementById('panel-' + tab).classList.add('active')
-    if (tab === 'approved' && !approvedLoaded) loadApproved()
-  }
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+  document.getElementById('tab-' + tab).classList.add('active')
+  document.getElementById('panel-' + tab).classList.add('active')
+  if (tab === 'approved' && !approvedLoaded) loadApproved()
+  if (tab === 'passed' && !passedLoaded) loadPassed()
+}
 
   // ── LOAD CANDIDATES ──
   async function loadPending() {
