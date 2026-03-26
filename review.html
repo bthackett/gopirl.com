@@ -552,6 +552,7 @@
       .eq('role', 'candidate')
       .eq('profile_complete', true)
       .eq('approved', false)
+      .eq('passed', false)
       .order('created_at', { ascending: false })
 
     document.getElementById('loading-pending').style.display = 'none'
@@ -577,6 +578,23 @@
     renderGrid('grid-approved', data, true)
     approvedLoaded = true
   }
+  
+  async function loadPassed() {
+  document.getElementById('loading-passed').style.display = 'block'
+  const { data, error } = await sb
+    .from('profiles')
+    .select('*')
+    .eq('role', 'candidate')
+    .eq('profile_complete', true)
+    .eq('passed', true)
+    .order('created_at', { ascending: false })
+
+  document.getElementById('loading-passed').style.display = 'none'
+  if (error) { showToast('Error loading candidates', 'error'); return }
+  document.getElementById('count-passed').textContent = data.length
+  renderGrid('grid-passed', data, false, true)
+  passedLoaded = true
+}
 
   // ── RENDER ──
   function renderGrid(gridId, candidates, isApproved) {
