@@ -677,11 +677,11 @@
 
   // ── APPROVE / PASS ──
   async function setApproval(userId, approved, isPass = false) {
-  const updateData = approved
-    ? { approved: true, passed: false }
-    : isPass
-      ? { approved: false, passed: true }
-      : { approved: false, passed: false }
+    const updateData = approved
+      ? { approved: true, passed: false }
+      : isPass
+        ? { approved: false, passed: true }
+        : { approved: false, passed: false }
 
   const { error } = await sb
     .from('profiles')
