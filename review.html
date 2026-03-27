@@ -677,40 +677,36 @@
 
   // ── APPROVE / PASS ──
   async function setApproval(userId, approved, isPass = false) {
-    const updateData = approved
-      ? { approved: true, passed: false }
-      : isPass
-        ? { approved: false, passed: true }
-        : { approved: false, passed: false }
+  const updateData = approved
+    ? { approved: true, passed: false }
+    : isPass
+      ? { approved: false, passed: true }
+      : { approved: false, passed: false }
 
   const { error } = await sb
     .from('profiles')
     .update(updateData)
     .eq('id', userId)
 
-    setTimeout(() => {
-      card.remove()
-      updateCounts()
-      if (approved) showToast('Candidate approved ✓', 'success')
-      else if (isPass) showToast('Candidate passed')
-      else showToast('Approval removed')
-    }, 300)
+  if (error) { showToast('Something went wrong', 'error'); return }
+
+  // Reset loaded flags so all tabs reload fresh
+  pendingLoaded = false
+  approvedLoaded = false
+  passedLoaded = false
+
+  // Reload all three grids
+  await loadPending()
+  await loadApproved()
+  if (document.getElementById('panel-passed').classList.contains('active')) {
+    await loadPassed()
   }
 
-  function updateCounts() {
-    const pendingCount = document.getElementById('grid-pending').querySelectorAll('.candidate-card').length
-    const approvedCount = document.getElementById('grid-approved').querySelectorAll('.candidate-card').length
-    document.getElementById('count-pending').textContent = pendingCount
-    document.getElementById('count-approved').textContent = approvedCount
-  }
-
-  // ── TOAST ──
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast')
-    t.textContent = msg
-    t.className = 'toast show ' + type
-    setTimeout(() => { t.className = 'toast ' + type }, 2500)
-  }
+  // Show toast
+  if (approved) showToast('Candidate approved ✓', 'success')
+  else if (isPass) showToast('Candidate passed')
+  else showToast('Moved to pending')
+}
 </script>
 </body>
 </html>
