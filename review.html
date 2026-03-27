@@ -699,13 +699,13 @@
   await loadPending()
   await loadApproved()
   await loadPassed()
-  }
+  
 
   // Show toast
   if (approved) showToast('Candidate approved ✓', 'success')
   else if (isPass) showToast('Candidate passed')
   else showToast('Moved to pending')
-
+}
 </script>
 </body>
 </html>
