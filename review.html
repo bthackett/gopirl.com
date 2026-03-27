@@ -530,13 +530,17 @@
   })
 
   async function showDashboard() {
-    const { data: { user } } = await sb.auth.getUser()
-    if (!user) return
-    document.getElementById('auth-gate').style.display = 'none'
-    document.getElementById('dashboard').style.display = 'block'
-    document.getElementById('topbar-email').textContent = user.email
-    loadPending()
-  }
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  document.getElementById('auth-gate').style.display = 'none'
+  document.getElementById('dashboard').style.display = 'block'
+  document.getElementById('topbar-email').textContent = user.email
+  
+  // Load all three tabs on login
+  await loadPending()
+  await loadApproved()
+  await loadPassed()
+}
 
   // ── CHECK SESSION ON LOAD ──
   sb.auth.getSession().then(({ data: { session } }) => {
