@@ -695,11 +695,10 @@
   approvedLoaded = false
   passedLoaded = false
 
-  // Reload all three grids
+  // Reload all three grids always
   await loadPending()
   await loadApproved()
-  if (document.getElementById('panel-passed').classList.contains('active')) {
-    await loadPassed()
+  await loadPassed()
   }
 
   // Show toast
