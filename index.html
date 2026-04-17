@@ -6,6 +6,16 @@
 <title> go pirl — Pitch in real life</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const { createClient } = supabase
+  const supabaseClient = createClient(
+    'https://nqedtvaopxfjnjzipjtr.supabase.co',
+    'sb_publishable_STUywyOomfbXkrfGRsK5wg_aLWiwq1a'
+  )
+</script>
+ 
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -136,9 +146,14 @@
 
   .hero-form {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
     max-width: 460px;
+  }
+  
+  .hero-form button {
+    width: 100%;
   }
 
   .hero-form input {
@@ -577,8 +592,10 @@
         Record a 60-second video pitch and get in front of founders at high-growth startups. No cold applications, no resume black holes, every candidate reviewed personally.
       </p>
       <form class="hero-form" id="signup" onsubmit="handleSignup(event)">
-        <input type="email" placeholder="your@email.com" required id="hero-email" />
-        <button type="submit">Get early access</button>
+        <input type="text" placeholder="Your name" id="signup-name" required />
+        <input type="email" placeholder="your@email.com" id="signup-email" required />
+        <input type="url" placeholder="linkedin.com/in/yourprofile" id="signup-linkedin" />
+        <button type="submit" id="signup-btn">Get early access</button>
       </form>
       <p class="hero-fine">
         Free for candidates. By signing up you agree to our
@@ -688,16 +705,37 @@
 </footer>
 
 <script>
-  function handleSignup(e) {
-    e.preventDefault()
-    const emailInput = e.target.querySelector('input[type="email"]')
-    const email = emailInput.value.trim()
-    if (!email) return
+  async function handleSignup(e) {
+  e.preventDefault()
+  const name = document.getElementById('signup-name').value.trim()
+  const email = document.getElementById('signup-email').value.trim()
+  const linkedin = document.getElementById('signup-linkedin').value.trim()
+  const btn = document.getElementById('signup-btn')
 
-    // Replace this URL with your actual magic link endpoint or Supabase signInWithOtp call
-    // For now, redirect to the app with the email pre-filled
-    window.location.href = `https://gopirl.com/app?email=${encodeURIComponent(email)}`
+  if (!name || !email) return
+
+  btn.textContent = 'Submitting...'
+  btn.disabled = true
+
+  const { error } = await supabaseClient
+    .from('waitlist')
+    .insert({ name, email, linkedin_url: linkedin || null })
+
+  if (error) {
+    btn.textContent = 'Get early access'
+    btn.disabled = false
+    alert('Something went wrong. Please try again.')
+    return
   }
+
+  // Replace form with confirmation
+  document.getElementById('signup').innerHTML = `
+    <div style="padding: 16px 0;">
+      <p style="font-size:16px; font-weight:700; color:#18181B; margin-bottom:8px;">You're on the list ✓</p>
+      <p style="font-size:14px; color:#6B6B7B; line-height:1.6;">We'll be in touch with next steps including how to download the app. iOS only for now.</p>
+    </div>
+  `
+}
 </script>
 
 </body>
