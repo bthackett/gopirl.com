@@ -688,9 +688,11 @@
   <h2 class="section-title">Your next role starts with a 60-second pitch.</h2>
   <p class="section-sub">go pirl is invite-only and growing. Sign up to be considered for early access.</p>
   <form class="cta-form" onsubmit="handleSignup(event)">
-    <input type="email" placeholder="your@email.com" required id="cta-email" />
-    <button type="submit">Get early access</button>
-  </form>
+    <input type="text" placeholder="Your name" id="cta-name" required />
+    <input type="email" placeholder="your@email.com" id="cta-email" required />
+    <input type="url" placeholder="linkedin.com/in/yourprofile" id="cta-linkedin" />
+    <button type="submit" id="cta-btn">Get early access</button>
+</form>
   <p class="cta-fine">Free for candidates. <a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms</a></p>
 </div>
 
@@ -707,10 +709,15 @@
 <script>
   async function handleSignup(e) {
   e.preventDefault()
-  const name = document.getElementById('signup-name').value.trim()
-  const email = document.getElementById('signup-email').value.trim()
-  const linkedin = document.getElementById('signup-linkedin').value.trim()
-  const btn = document.getElementById('signup-btn')
+  const form = e.target
+  const nameInput = form.querySelector('input[type="text"]')
+  const emailInput = form.querySelector('input[type="email"]')
+  const linkedinInput = form.querySelector('input[type="url"]')
+  const btn = form.querySelector('button')
+
+  const name = nameInput?.value.trim()
+  const email = emailInput?.value.trim()
+  const linkedin = linkedinInput?.value.trim()
 
   if (!name || !email) return
 
@@ -728,9 +735,8 @@
     return
   }
 
-  // Replace form with confirmation
-  document.getElementById('signup').innerHTML = `
-    <div style="padding: 16px 0;">
+  form.innerHTML = `
+    <div style="padding: 16px 0; text-align:center;">
       <p style="font-size:16px; font-weight:700; color:#18181B; margin-bottom:8px;">You're on the list ✓</p>
       <p style="font-size:14px; color:#6B6B7B; line-height:1.6;">We'll be in touch with next steps including how to download the app. iOS only for now.</p>
     </div>
