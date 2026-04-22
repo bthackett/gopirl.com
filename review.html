@@ -433,6 +433,162 @@
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.success { border-color: #2a5a2a; color: #4caf50; }
   .toast.error { border-color: #5a1a1a; color: #ff6b6b; }
+
+  .searches-panel {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.searches-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.searches-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.btn-new-search {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--purple);
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-new-search:hover { border-color: var(--purple); }
+
+.new-search-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.new-search-form input,
+.new-search-form select {
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  flex: 1;
+  min-width: 180px;
+}
+
+.new-search-form input:focus,
+.new-search-form select:focus { border-color: var(--purple); }
+
+.new-search-form button {
+  background: var(--purple);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: none !important;
+  border: 1px solid var(--border) !important;
+  color: var(--muted) !important;
+}
+
+.searches-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-chip {
+  background: var(--purple-dim);
+  border: 1px solid var(--purple-deep);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--purple);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-chip .chip-founder {
+  color: #555;
+  font-weight: 400;
+}
+
+/* Search assignment on candidate cards */
+.search-assignment {
+  padding: 0 20px 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.search-assignment-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.search-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.assigned-chip {
+  background: #0d2e0d;
+  color: #4caf50;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.assigned-chip:hover { background: #1a3a1a; }
+
+.search-select {
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.search-select:focus { border-color: var(--purple); }
 </style>
 </head>
 <body>
@@ -472,6 +628,22 @@
   <div class="tab" onclick="switchTab('passed')" id="tab-passed">
     Passed <span class="tab-count" id="count-passed">0</span>
   </div>
+</div>
+
+  <div class="searches-panel" id="searches-panel">
+  <div class="searches-header">
+    <span class="searches-title">Active Searches</span>
+    <button class="btn-new-search" onclick="toggleNewSearch()">+ New Search</button>
+  </div>
+  <div class="new-search-form" id="new-search-form" style="display:none;">
+    <input type="text" id="search-title" placeholder="Search title (e.g. Infilla PM Search)" />
+    <select id="search-founder">
+      <option value="">Select founder...</option>
+    </select>
+    <button onclick="createSearch()">Create</button>
+    <button onclick="toggleNewSearch()" class="btn-cancel">Cancel</button>
+  </div>
+  <div class="searches-list" id="searches-list"></div>
 </div>
 
   <div class="content">
@@ -540,6 +712,7 @@
   await loadPending()
   await loadApproved()
   await loadPassed()
+  await loadSearches()  
 }
 
   // ── CHECK SESSION ON LOAD ──
@@ -590,6 +763,15 @@
     document.getElementById('count-approved').textContent = data.length
     renderGrid('grid-approved', data, true)
     approvedLoaded = true
+
+    // Load search assignments for each approved candidate
+    data.forEach(async (c) => {
+      const assignments = await loadCandidateSearches(c.id)
+      const container = document.getElementById(`search-assign-inner-${c.id}`)
+      if (container) {
+        container.innerHTML = renderSearchAssignment(c.id, assignments)
+      }
+    })
   }
   
   async function loadPassed() {
@@ -647,6 +829,16 @@
       </div>
     `).join('')
 
+      // Search assignment — only show on approved cards
+    const searchAssignHtml = isApproved ? `
+      <div class="search-assignment" id="search-assign-${c.id}">
+      <div class="search-assignment-label">Searches</div>
+      <div id="search-assign-inner-${c.id}">
+        <span style="font-size:12px;color:var(--muted);">Loading...</span>
+        </div>
+      </div>
+    ` : ''
+    
     const actionsHtml = isApproved
       ? `<button class="btn-unapprove" onclick="setApproval('${c.id}', false, false)">✓ Approved — Undo</button>`
       : isPassed
@@ -674,6 +866,8 @@
           <div class="videos-label">Videos</div>
           <div class="video-grid">${videosHtml}</div>
         </div>
+        ${searchAssignHtml}
+        <div class="card-actions">${actionsHtml}</div>
         <div class="card-actions">${actionsHtml}</div>
       </div>
     `
@@ -715,6 +909,160 @@
   t.textContent = msg
   t.className = 'toast show ' + type
   setTimeout(() => { t.className = 'toast ' + type }, 2500)
+}
+
+  // ── SEARCHES ──
+let allSearches = []
+let founderProfiles = []
+
+async function loadSearches() {
+  const { data, error } = await sb
+    .from('searches')
+    .select('*, profiles(name, company)')
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+
+  if (error) { console.error('Error loading searches:', error); return }
+  allSearches = data || []
+  renderSearchChips()
+}
+
+async function loadFounders() {
+  const { data, error } = await sb
+    .from('profiles')
+    .select('id, name, company')
+    .eq('role', 'founder')
+    .eq('approved', true)
+
+  if (error) { console.error('Error loading founders:', error); return }
+  founderProfiles = data || []
+
+  const select = document.getElementById('search-founder')
+  select.innerHTML = '<option value="">Select founder...</option>'
+  founderProfiles.forEach(f => {
+    const opt = document.createElement('option')
+    opt.value = f.id
+    opt.textContent = `${f.name || 'Unknown'} — ${f.company || ''}`
+    select.appendChild(opt)
+  })
+}
+
+function renderSearchChips() {
+  const list = document.getElementById('searches-list')
+  if (!allSearches.length) {
+    list.innerHTML = '<span style="font-size:12px;color:var(--muted);">No active searches yet.</span>'
+    return
+  }
+  list.innerHTML = allSearches.map(s => `
+    <div class="search-chip">
+      ${s.title}
+      <span class="chip-founder">${s.profiles?.company || s.profiles?.name || ''}</span>
+    </div>
+  `).join('')
+}
+
+function toggleNewSearch() {
+  const form = document.getElementById('new-search-form')
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none'
+  if (form.style.display === 'flex') loadFounders()
+}
+
+async function createSearch() {
+  const title = document.getElementById('search-title').value.trim()
+  const founderId = document.getElementById('search-founder').value
+
+  if (!title || !founderId) {
+    showToast('Please enter a title and select a founder', 'error')
+    return
+  }
+
+  const { error } = await sb
+    .from('searches')
+    .insert({ title, founder_id: founderId, active: true })
+
+  if (error) { showToast('Error creating search', 'error'); return }
+
+  document.getElementById('search-title').value = ''
+  document.getElementById('search-founder').value = ''
+  toggleNewSearch()
+  await loadSearches()
+  showToast('Search created ✓', 'success')
+}
+
+// ── SEARCH ASSIGNMENT ──
+async function loadCandidateSearches(candidateId) {
+  const { data, error } = await sb
+    .from('search_candidates')
+    .select('search_id, searches(title)')
+    .eq('candidate_id', candidateId)
+
+  if (error) return []
+  return data || []
+}
+
+async function addToSearch(candidateId, searchId) {
+  if (!searchId) return
+
+  const { error } = await sb
+    .from('search_candidates')
+    .insert({ search_id: searchId, candidate_id: candidateId })
+
+  if (error) {
+    if (error.code === '23505') {
+      showToast('Already in this search', 'error')
+    } else {
+      showToast('Error adding to search', 'error')
+    }
+    return
+  }
+
+  showToast('Added to search ✓', 'success')
+  // Refresh the assignment UI for this card
+  refreshCandidateSearches(candidateId)
+}
+
+async function removeFromSearch(candidateId, searchId) {
+  const { error } = await sb
+    .from('search_candidates')
+    .delete()
+    .eq('candidate_id', candidateId)
+    .eq('search_id', searchId)
+
+  if (error) { showToast('Error removing from search', 'error'); return }
+
+  showToast('Removed from search')
+  refreshCandidateSearches(candidateId)
+}
+
+async function refreshCandidateSearches(candidateId) {
+  const assignments = await loadCandidateSearches(candidateId)
+  const container = document.getElementById(`search-assign-${candidateId}`)
+  if (container) {
+    container.innerHTML = renderSearchAssignment(candidateId, assignments)
+  }
+}
+
+function renderSearchAssignment(candidateId, assignments) {
+  const assignedIds = assignments.map(a => a.search_id)
+  const availableSearches = allSearches.filter(s => !assignedIds.includes(s.id))
+
+  const assignedChips = assignments.map(a => `
+    <span class="assigned-chip" onclick="removeFromSearch('${candidateId}', '${a.search_id}')" title="Click to remove">
+      ${a.searches?.title || 'Unknown'} ✕
+    </span>
+  `).join('')
+
+  const selectHtml = availableSearches.length ? `
+    <select class="search-select" onchange="addToSearch('${candidateId}', this.value); this.value=''">
+      <option value="">+ Add to search...</option>
+      ${availableSearches.map(s => `<option value="${s.id}">${s.title}</option>`).join('')}
+    </select>
+  ` : ''
+
+  return `
+    <div class="search-chips-row">${assignedChips}</div>
+    ${selectHtml}
+  `
 }
 </script>
 </body>
