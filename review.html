@@ -589,6 +589,64 @@
 }
 
 .search-select:focus { border-color: var(--purple); }
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  align-items: center;
+}
+
+.filter-search {
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  min-width: 160px;
+  flex: 1;
+}
+
+.filter-search:focus { border-color: var(--purple); }
+.filter-search::placeholder { color: var(--muted); }
+
+.filter-select {
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.filter-select:focus { border-color: var(--purple); }
+
+.filter-clear {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.filter-clear:hover { border-color: var(--subtle); color: var(--text); }
+  
 </style>
 </head>
 <body>
@@ -646,6 +704,24 @@
   <div class="searches-list" id="searches-list"></div>
 </div>
 
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+  <input type="text" class="filter-search" id="filter-search" placeholder="Search by name or title..." oninput="applyFiltersToActiveTab()" />
+  <select class="filter-select" id="filter-function" onchange="applyFiltersToActiveTab()">
+    <option value="">All functions</option>
+    <option value="gtm">GTM</option>
+    <option value="cs">Customer Success</option>
+    <option value="technical">Technical</option>
+    <option value="product">Product</option>
+  </select>
+  <input type="text" class="filter-search" id="filter-location" placeholder="Location..." oninput="applyFiltersToActiveTab()" />
+  <input type="text" class="filter-search" id="filter-skills" placeholder="Skill tag..." oninput="applyFiltersToActiveTab()" />
+  <select class="filter-select" id="filter-search-assignment" onchange="applyFiltersToActiveTab()">
+    <option value="">All searches</option>
+  </select>
+  <button class="filter-clear" onclick="clearFilters()">Clear</button>
+</div>
+
   <div class="content">
     <div class="tab-panel active" id="panel-pending">
       <div class="loading" id="loading-pending">Loading candidates…</div>
@@ -675,6 +751,9 @@
   const FN_LABELS = { gtm: 'GTM', cs: 'Customer Success', product: 'Product', technical: 'Technical' }
   const VIDEO_LABELS = ['60s Intro', 'Career Highlight', 'AI in your workflow']
 
+  let allPendingCandidates = []
+  let allApprovedCandidates = []
+  let allPassedCandidates = []
   let pendingLoaded = false
   let approvedLoaded = false
   let passedLoaded = false
@@ -744,6 +823,7 @@
     document.getElementById('loading-pending').style.display = 'none'
     if (error) { showToast('Error loading candidates', 'error'); return }
     document.getElementById('count-pending').textContent = data.length
+    allPendingCandidates = data
     renderGrid('grid-pending', data, false)
     pendingLoaded = true
   }
@@ -761,6 +841,7 @@
     document.getElementById('loading-approved').style.display = 'none'
     if (error) { showToast('Error loading candidates', 'error'); return }
     document.getElementById('count-approved').textContent = data.length
+    allApprovedCandidates = data
     renderGrid('grid-approved', data, true)
     approvedLoaded = true
 
@@ -787,6 +868,7 @@
   document.getElementById('loading-passed').style.display = 'none'
   if (error) { showToast('Error loading candidates', 'error'); return }
   document.getElementById('count-passed').textContent = data.length
+  allPassedCandidates = data
   renderGrid('grid-passed', data, false, true)
   passedLoaded = true
 }
@@ -924,6 +1006,15 @@ async function loadSearches() {
   if (error) { console.error('Error loading searches:', error); return }
   allSearches = data || []
   renderSearchChips()
+  // Populate filter dropdown
+const filterSelect = document.getElementById('filter-search-assignment')
+filterSelect.innerHTML = '<option value="">All searches</option>'
+allSearches.forEach(s => {
+  const opt = document.createElement('option')
+  opt.value = s.id
+  opt.textContent = s.title
+  filterSelect.appendChild(opt)
+})
 }
 
 async function loadFounders() {
@@ -1063,6 +1154,79 @@ function renderSearchAssignment(candidateId, assignments) {
     ${selectHtml}
   `
 }
+
+ // ── FILTERS ──
+function getActiveTabName() {
+  if (document.getElementById('panel-pending').classList.contains('active')) return 'pending'
+  if (document.getElementById('panel-approved').classList.contains('active')) return 'approved'
+  return 'passed'
+}
+
+function applyFilters(candidates, searchAssignmentMap = {}) {
+  const search = document.getElementById('filter-search')?.value.toLowerCase().trim() || ''
+  const fn = document.getElementById('filter-function')?.value || ''
+  const location = document.getElementById('filter-location')?.value.toLowerCase().trim() || ''
+  const skills = document.getElementById('filter-skills')?.value.toLowerCase().trim() || ''
+  const searchId = document.getElementById('filter-search-assignment')?.value || ''
+
+  return candidates.filter(c => {
+    if (search && !`${c.name || ''} ${c.headline || ''} ${c.title || ''}`.toLowerCase().includes(search)) return false
+    if (fn && c.job_function !== fn) return false
+    if (location && !c.location?.toLowerCase().includes(location)) return false
+    if (skills && !(c.skills || []).some(s => s.toLowerCase().includes(skills))) return false
+    if (searchId && !searchAssignmentMap[c.id]?.includes(searchId)) return false
+    return true
+  })
+}
+
+async function applyFiltersToActiveTab() {
+  const tab = getActiveTabName()
+
+  // Build search assignment map if filtering by search
+  const searchId = document.getElementById('filter-search-assignment')?.value || ''
+  let searchAssignmentMap = {}
+
+  if (searchId) {
+    const { data } = await sb
+      .from('search_candidates')
+      .select('candidate_id, search_id')
+    if (data) {
+      data.forEach(row => {
+        if (!searchAssignmentMap[row.candidate_id]) searchAssignmentMap[row.candidate_id] = []
+        searchAssignmentMap[row.candidate_id].push(row.search_id)
+      })
+    }
+  }
+
+  if (tab === 'pending') {
+    const filtered = applyFilters(allPendingCandidates, searchAssignmentMap)
+    renderGrid('grid-pending', filtered, false)
+    document.getElementById('count-pending').textContent = filtered.length
+  } else if (tab === 'approved') {
+    const filtered = applyFilters(allApprovedCandidates, searchAssignmentMap)
+    renderGrid('grid-approved', filtered, true)
+    document.getElementById('count-approved').textContent = filtered.length
+    // Reload search assignments for filtered cards
+    filtered.forEach(async (c) => {
+      const assignments = await loadCandidateSearches(c.id)
+      const container = document.getElementById(`search-assign-inner-${c.id}`)
+      if (container) container.innerHTML = renderSearchAssignment(c.id, assignments)
+    })
+  } else {
+    const filtered = applyFilters(allPassedCandidates, searchAssignmentMap)
+    renderGrid('grid-passed', filtered, false, true)
+    document.getElementById('count-passed').textContent = filtered.length
+  }
+}
+
+function clearFilters() {
+  document.getElementById('filter-search').value = ''
+  document.getElementById('filter-function').value = ''
+  document.getElementById('filter-location').value = ''
+  document.getElementById('filter-skills').value = ''
+  document.getElementById('filter-search-assignment').value = ''
+  applyFiltersToActiveTab()
+} 
 </script>
 </body>
 </html>
