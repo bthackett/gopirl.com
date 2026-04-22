@@ -706,6 +706,7 @@
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
+  <input type="text" class="filter-search" id="filter-transcript" placeholder="Search transcripts..." oninput="applyFiltersToActiveTab()" />
   <input type="text" class="filter-search" id="filter-search" placeholder="Search by name or title..." oninput="applyFiltersToActiveTab()" />
   <select class="filter-select" id="filter-function" onchange="applyFiltersToActiveTab()">
     <option value="">All functions</option>
@@ -1181,9 +1182,17 @@ function applyFilters(candidates, searchAssignmentMap = {}) {
   )
   if (!hasMatch) return false
 }
-    if (searchId && !searchAssignmentMap[c.id]?.includes(searchId)) return false
-    return true
-  })
+  const transcript = document.getElementById('filter-transcript')?.value.toLowerCase().trim() || ''
+  if (transcript) {
+    const t1 = (c.transcript_1 || '').toLowerCase()
+    const t2 = (c.transcript_2 || '').toLowerCase()
+    const t3 = (c.transcript_3 || '').toLowerCase()
+    if (!t1.includes(transcript) && !t2.includes(transcript) && !t3.includes(transcript)) return false
+  }
+
+  if (searchId && !searchAssignmentMap[c.id]?.includes(searchId)) return false
+  return true
+})
 }
 
 async function applyFiltersToActiveTab() {
@@ -1231,6 +1240,7 @@ function clearFilters() {
   document.getElementById('filter-function').value = ''
   document.getElementById('filter-location').value = ''
   document.getElementById('filter-skills').value = ''
+  document.getElementById('filter-transcript').value = ''
   document.getElementById('filter-search-assignment').value = ''
   applyFiltersToActiveTab()
 } 
