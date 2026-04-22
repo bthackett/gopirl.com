@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>go pirl — Client Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --purple: #BF5FFF;
+    --purple-deep: #7B1FA2;
+    --purple-dim: #1a0a2e;
+    --black: #0a0a0a;
+    --surface: #111114;
+    --card: #16161a;
+    --border: #232328;
+    --text: #f0f0f0;
+    --muted: #666;
+    --subtle: #333;
+    --green: #4caf50;
+    --green-dim: #0d2e0d;
+    --red: #ff6b6b;
+    --red-dim: #2e0d0d;
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── AUTH ── */
+  #auth-gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 50% 0%, #1a0a2e 0%, #0a0a0a 60%);
+  }
+
+  .auth-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 52px 44px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  .auth-logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--purple);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .auth-sub {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  .auth-box input {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .auth-box input:focus { border-color: var(--purple); }
+  .auth-box input::placeholder { color: #444; }
+
+  .auth-box button {
+    width: 100%;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 4px;
+  }
+
+  .auth-box button:hover { opacity: 0.85; }
+  .auth-error { color: var(--red); font-size: 13px; margin-top: 12px; }
+
+  /* ── PORTAL ── */
+  #portal { display: none; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--black);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-logo { font-size: 18px; font-weight: 800; color: var(--purple); letter-spacing: -0.3px; }
+  .topbar-search-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .topbar-user { font-size: 12px; color: var(--muted); }
+
+  .signout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .signout-btn:hover { border-color: var(--subtle); color: var(--text); }
+
+  /* ── SEARCH SELECTOR ── */
+  .search-selector {
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .search-selector-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .search-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .search-tab {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .search-tab:hover { border-color: var(--subtle); color: var(--text); }
+  .search-tab.active { background: var(--purple-dim); border-color: var(--purple); color: var(--purple); }
+
+  /* ── CONTENT ── */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+
+  .content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .content-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .content-title span {
+    color: var(--purple);
+    font-weight: 700;
+  }
+
+  /* ── CANDIDATE GRID ── */
+  .candidate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── CANDIDATE CARD ── */
+  .candidate-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .candidate-card:hover {
+    border-color: var(--subtle);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  .candidate-card.passed-card {
+    opacity: 0.5;
+    border-color: var(--red-dim);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 20px 14px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--purple-dim);
+    border: 1px solid var(--purple-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--purple);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .card-info { flex: 1; min-width: 0; }
+
+  .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .card-headline {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .fn-badge {
+    background: var(--purple-dim);
+    color: var(--purple);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .location-text { font-size: 12px; color: var(--muted); }
+  .dot { color: var(--subtle); font-size: 10px; }
+
+  /* ── SKILLS ── */
+  .skills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 0 20px 14px;
+  }
+
+  .skill-pill {
+    background: #1a1a1f;
+    border: 1px solid var(--border);
+    color: #888;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 12px;
+  }
+
+  /* ── VIDEOS ── */
+  .videos-section { padding: 0 20px 14px; }
+
+  .videos-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .video-wrap { position: relative; }
+
+  .video-wrap video {
+    width: 100%;
+    aspect-ratio: 9/16;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #0a0a0a;
+    display: block;
+  }
+
+  .video-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 5px;
+  }
+
+  .no-video {
+    width: 100%;
+    aspect-ratio: 9/16;
+    border-radius: 8px;
+    background: #0d0d10;
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--subtle);
+    font-size: 18px;
+  }
+
+  /* ── NOTES ── */
+  .notes-section {
+    padding: 0 20px 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  .notes-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .note-item {
+    background: #0d0d10;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #ccc;
+    line-height: 1.6;
+  }
+
+  .note-date {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .notes-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .notes-input {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+
+  .notes-input:focus { border-color: var(--purple); }
+  .notes-input::placeholder { color: #444; }
+
+  .btn-save-note {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+
+  .btn-save-note:hover { opacity: 0.85; }
+
+  /* ── ACTIONS ── */
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-invite {
+    flex: 2;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-invite:hover { opacity: 0.85; }
+
+  .btn-pass {
+    flex: 1;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-pass:hover { border-color: var(--red); color: var(--red); }
+
+  .btn-unpass {
+    flex: 1;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--red-dim);
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-unpass:hover { border-color: var(--muted); }
+
+  /* ── INVITE MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 24px;
+  }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .modal-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .modal textarea {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    padding: 14px 16px;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    margin-bottom: 16px;
+    transition: border-color 0.15s;
+    line-height: 1.6;
+  }
+
+  .modal textarea:focus { border-color: var(--purple); }
+  .modal textarea::placeholder { color: #444; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-send {
+    flex: 2;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 13px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-send:hover { opacity: 0.85; }
+
+  .btn-cancel-modal {
+    flex: 1;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel-modal:hover { border-color: var(--subtle); color: var(--text); }
+
+  /* ── EMPTY / LOADING ── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state p { font-size: 15px; line-height: 1.7; }
+
+  .loading {
+    text-align: center;
+    padding: 80px;
+    color: var(--muted);
+    font-size: 14px;
+    grid-column: 1 / -1;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: transform 0.25s ease;
+    z-index: 300;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: #2a5a2a; color: var(--green); }
+  .toast.error { border-color: #5a1a1a; color: var(--red); }
+
+  /* ── PASSED BADGE ── */
+  .passed-badge {
+    background: var(--red-dim);
+    color: var(--red);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .invited-badge {
+    background: var(--green-dim);
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  /* ── SHOW PASSED TOGGLE ── */
+  .show-passed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .show-passed-toggle input { cursor: pointer; accent-color: var(--purple); }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-gate">
+  <div class="auth-box">
+    <div class="auth-logo">go pirl</div>
+    <div class="auth-sub">Client Portal</div>
+    <input type="email" id="auth-email" placeholder="your@email.com" autocomplete="email" />
+    <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" />
+    <button onclick="handleLogin()">Sign in</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- PORTAL -->
+<div id="portal">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">go pirl</div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbar-email"></span>
+      <button class="signout-btn" onclick="handleSignOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="search-selector" id="search-selector" style="display:none;">
+    <div class="search-selector-label">Your searches</div>
+    <div class="search-tabs" id="search-tabs"></div>
+  </div>
+
+  <div class="content">
+    <div class="content-header">
+      <div class="content-title" id="content-title">Loading candidates...</div>
+      <label class="show-passed-toggle">
+        <input type="checkbox" id="show-passed" onchange="renderCurrentSearch()" />
+        Show passed
+      </label>
+    </div>
+    <div class="candidate-grid" id="candidate-grid">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- INVITE MODAL -->
+<div class="modal-overlay" id="invite-modal" style="display:none;">
+  <div class="modal">
+    <div class="modal-title" id="modal-candidate-name">Send invite</div>
+    <div class="modal-sub">Write a personal message to introduce yourself and share next steps.</div>
+    <textarea id="invite-message" placeholder="Hi! I watched your videos and would love to set up a quick call to tell you more about our team and the role..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-send" onclick="sendInvite()">Send invite</button>
+      <button class="btn-cancel-modal" onclick="closeInviteModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://nqedtvaopxfjnjzipjtr.supabase.co'
+  const SUPABASE_ANON_KEY = 'sb_publishable_STUywyOomfbXkrfGRsK5wg_aLWiwq1a'
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  const VIDEO_LABELS = ['60s Intro', 'Career Highlight', 'AI in your workflow']
+  const FN_LABELS = { gtm: 'GTM', cs: 'Customer Success', technical: 'Technical', product: 'Product' }
+
+  let currentUser = null
+  let searches = []
+  let activeSearchId = null
+  let candidatesBySearch = {}
+  let invitedCandidateIds = new Set()
+  let pendingInviteCandidate = null
+
+  // ── AUTH ──
+  async function handleLogin() {
+    const email = document.getElementById('auth-email').value.trim()
+    const password = document.getElementById('auth-password').value
+    const errEl = document.getElementById('auth-error')
+    errEl.textContent = ''
+
+    const { error } = await sb.auth.signInWithPassword({ email, password })
+    if (error) { errEl.textContent = error.message; return }
+    await initPortal()
+  }
+
+  async function handleSignOut() {
+    await sb.auth.signOut()
+    document.getElementById('portal').style.display = 'none'
+    document.getElementById('auth-gate').style.display = 'flex'
+    searches = []
+    candidatesBySearch = {}
+    activeSearchId = null
+  }
+
+  document.getElementById('auth-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin()
+  })
+
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) initPortal()
+  })
+
+  // ── INIT ──
+  async function initPortal() {
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) return
+
+    currentUser = user
+    document.getElementById('auth-gate').style.display = 'none'
+    document.getElementById('portal').style.display = 'block'
+    document.getElementById('topbar-email').textContent = user.email
+
+    await loadSearches()
+  }
+
+  // ── SEARCHES ──
+  async function loadSearches() {
+    const { data, error } = await sb
+      .from('searches')
+      .select('*')
+      .eq('founder_id', currentUser.id)
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+
+    if (error || !data?.length) {
+      document.getElementById('candidate-grid').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◎</div>
+          <p>No active searches yet.<br>Your recruiter will set up your search and let you know when candidates are ready.</p>
+        </div>`
+      document.getElementById('content-title').textContent = 'No active searches'
+      return
+    }
+
+    searches = data
+    renderSearchTabs()
+
+    // Auto-select first search
+    await selectSearch(searches[0].id)
+  }
+
+  function renderSearchTabs() {
+    const container = document.getElementById('search-tabs')
+    if (searches.length <= 1) {
+      document.getElementById('search-selector').style.display = 'none'
+      return
+    }
+    document.getElementById('search-selector').style.display = 'block'
+    container.innerHTML = searches.map(s => `
+      <button class="search-tab ${s.id === activeSearchId ? 'active' : ''}" onclick="selectSearch('${s.id}')">
+        ${s.title}
+      </button>
+    `).join('')
+  }
+
+  async function selectSearch(searchId) {
+    activeSearchId = searchId
+    renderSearchTabs()
+
+    if (!candidatesBySearch[searchId]) {
+      await loadCandidatesForSearch(searchId)
+    }
+
+    renderCurrentSearch()
+  }
+
+  // ── LOAD CANDIDATES ──
+  async function loadCandidatesForSearch(searchId) {
+    document.getElementById('candidate-grid').innerHTML = '<div class="loading">Loading candidates...</div>'
+
+    // Get candidate IDs for this search
+    const { data: scData, error: scError } = await sb
+      .from('search_candidates')
+      .select('candidate_id, founder_passed, founder_passed_at')
+      .eq('search_id', searchId)
+
+    if (scError || !scData?.length) {
+      candidatesBySearch[searchId] = []
+      return
+    }
+
+    const candidateIds = scData.map(sc => sc.candidate_id)
+    const passedMap = {}
+    scData.forEach(sc => { passedMap[sc.candidate_id] = sc.founder_passed || false })
+
+    // Fetch candidate profiles
+    const { data: profiles, error: profileError } = await sb
+      .from('profiles')
+      .select('*')
+      .in('id', candidateIds)
+      .eq('approved', true)
+
+    if (profileError) { candidatesBySearch[searchId] = []; return }
+
+    // Attach passed status
+    const candidates = (profiles || []).map(p => ({
+      ...p,
+      founder_passed: passedMap[p.id] || false
+    }))
+
+    candidatesBySearch[searchId] = candidates
+
+    // Load existing invitations
+    const { data: invites } = await sb
+      .from('invitations')
+      .select('candidate_id')
+      .eq('founder_id', currentUser.id)
+      .in('candidate_id', candidateIds)
+
+    invitedCandidateIds = new Set((invites || []).map(i => i.candidate_id))
+  }
+
+  // ── RENDER ──
+  function renderCurrentSearch() {
+    const candidates = candidatesBySearch[activeSearchId] || []
+    const showPassed = document.getElementById('show-passed').checked
+    const search = searches.find(s => s.id === activeSearchId)
+
+    const filtered = showPassed ? candidates : candidates.filter(c => !c.founder_passed)
+    const activeCount = candidates.filter(c => !c.founder_passed).length
+
+    document.getElementById('content-title').innerHTML = search
+      ? `<span>${search.title}</span> · ${activeCount} candidate${activeCount !== 1 ? 's' : ''}`
+      : `${activeCount} candidates`
+
+    const grid = document.getElementById('candidate-grid')
+
+    if (!filtered.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◎</div>
+          <p>${candidates.length === 0 ? 'No candidates have been matched to this search yet.<br>Check back soon.' : 'No candidates to show.<br>Toggle "Show passed" to see everyone.'}</p>
+        </div>`
+      return
+    }
+
+    grid.innerHTML = filtered.map(c => renderCard(c)).join('')
+
+    // Load notes for each card
+    filtered.forEach(c => loadNotesForCard(c.id))
+  }
+
+  function renderCard(c) {
+    const initials = (c.name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    const fnLabel = FN_LABELS[c.job_function] || ''
+    const skills = (c.skills || []).slice(0, 8)
+    const videos = [c.video_1_url, c.video_2_url, c.video_3_url]
+    const isPassed = c.founder_passed
+    const isInvited = invitedCandidateIds.has(c.id)
+
+    const avatarInner = c.avatar_url
+      ? `<img src="${c.avatar_url}" alt="${c.name}" />`
+      : initials
+
+    const skillsHtml = skills.length
+      ? `<div class="skills-row">${skills.map(s => `<span class="skill-pill">${s}</span>`).join('')}${(c.skills?.length || 0) > 8 ? `<span class="skill-pill">+${c.skills.length - 8}</span>` : ''}</div>`
+      : ''
+
+    const videosHtml = videos.map((url, i) => `
+      <div class="video-wrap">
+        ${url
+          ? `<video src="${url}" controls playsinline preload="metadata"></video>`
+          : `<div class="no-video">+</div>`
+        }
+        <div class="video-label">${VIDEO_LABELS[i]}</div>
+      </div>
+    `).join('')
+
+    const actionsHtml = isPassed
+      ? `<button class="btn-unpass" onclick="togglePass('${c.id}', false)">↩ Undo pass</button>`
+      : `<button class="btn-invite ${isInvited ? 'btn-invited' : ''}" onclick="openInviteModal('${c.id}', '${(c.name || '').replace(/'/g, "\\'")}')">
+          ${isInvited ? '✓ Invited' : 'Invite to interview'}
+        </button>
+        <button class="btn-pass" onclick="togglePass('${c.id}', true)">Pass</button>`
+
+    return `
+      <div class="candidate-card ${isPassed ? 'passed-card' : ''}" id="card-${c.id}">
+        <div class="card-header">
+          <div class="avatar">${avatarInner}</div>
+          <div class="card-info">
+            <div class="card-name">${c.name || 'No name'}</div>
+            <div class="card-headline">${c.headline || c.title || '—'}</div>
+            <div class="card-meta">
+              ${fnLabel ? `<span class="fn-badge">${fnLabel}</span>` : ''}
+              ${isPassed ? `<span class="passed-badge">Passed</span>` : ''}
+              ${isInvited ? `<span class="invited-badge">Invited</span>` : ''}
+              ${c.location ? `<span class="location-text">${c.location}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        ${skillsHtml}
+        <div class="videos-section">
+          <div class="videos-label">Videos</div>
+          <div class="video-grid">${videosHtml}</div>
+        </div>
+        <div class="notes-section">
+          <div class="notes-label">Notes</div>
+          <div class="notes-list" id="notes-${c.id}"></div>
+          <div class="notes-input-row">
+            <textarea class="notes-input" id="note-input-${c.id}" placeholder="Add a note..." rows="2"></textarea>
+            <button class="btn-save-note" onclick="saveNote('${c.id}')">Save</button>
+          </div>
+        </div>
+        <div class="card-actions">${actionsHtml}</div>
+      </div>
+    `
+  }
+
+  // ── NOTES ──
+  async function loadNotesForCard(candidateId) {
+    const { data, error } = await sb
+      .from('founder_notes')
+      .select('*')
+      .eq('founder_id', currentUser.id)
+      .eq('candidate_id', candidateId)
+      .eq('search_id', activeSearchId)
+      .order('created_at', { ascending: true })
+
+    const container = document.getElementById(`notes-${candidateId}`)
+    if (!container) return
+
+    if (!data?.length) { container.innerHTML = ''; return }
+
+    container.innerHTML = data.map(n => `
+      <div class="note-item">
+        ${n.note}
+        <div class="note-date">${new Date(n.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+      </div>
+    `).join('')
+  }
+
+  async function saveNote(candidateId) {
+    const input = document.getElementById(`note-input-${candidateId}`)
+    const note = input.value.trim()
+    if (!note) return
+
+    const { error } = await sb
+      .from('founder_notes')
+      .insert({
+        founder_id: currentUser.id,
+        candidate_id: candidateId,
+        search_id: activeSearchId,
+        note
+      })
+
+    if (error) { showToast('Error saving note', 'error'); return }
+
+    input.value = ''
+    await loadNotesForCard(candidateId)
+    showToast('Note saved ✓', 'success')
+  }
+
+  // ── PASS ──
+  async function togglePass(candidateId, passed) {
+    const { error } = await sb
+      .from('search_candidates')
+      .update({
+        founder_passed: passed,
+        founder_passed_at: passed ? new Date().toISOString() : null
+      })
+      .eq('candidate_id', candidateId)
+      .eq('search_id', activeSearchId)
+
+    if (error) { showToast('Something went wrong', 'error'); return }
+
+    // Update local state
+    const candidates = candidatesBySearch[activeSearchId] || []
+    const candidate = candidates.find(c => c.id === candidateId)
+    if (candidate) candidate.founder_passed = passed
+
+    renderCurrentSearch()
+    showToast(passed ? 'Candidate passed' : 'Candidate restored')
+  }
+
+  // ── INVITE ──
+  function openInviteModal(candidateId, candidateName) {
+    pendingInviteCandidate = candidateId
+    document.getElementById('modal-candidate-name').textContent = `Invite ${candidateName}`
+    document.getElementById('invite-message').value = ''
+    document.getElementById('invite-modal').style.display = 'flex'
+  }
+
+  function closeInviteModal() {
+    document.getElementById('invite-modal').style.display = 'none'
+    pendingInviteCandidate = null
+  }
+
+  async function sendInvite() {
+    if (!pendingInviteCandidate) return
+    const message = document.getElementById('invite-message').value.trim()
+    if (!message) { showToast('Please write a message first', 'error'); return }
+
+    const { error } = await sb
+      .from('invitations')
+      .insert({
+        founder_id: currentUser.id,
+        candidate_id: pendingInviteCandidate,
+        message,
+        status: 'pending'
+      })
+
+    if (error) { showToast('Error sending invite', 'error'); return }
+
+    invitedCandidateIds.add(pendingInviteCandidate)
+    closeInviteModal()
+    renderCurrentSearch()
+    showToast('Invite sent ✓', 'success')
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.className = 'toast show ' + type
+    setTimeout(() => { t.className = 'toast ' + type }, 2500)
+  }
+</script>
+</body>
+</html>
