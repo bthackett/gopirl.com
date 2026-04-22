@@ -704,10 +704,11 @@
   <div class="searches-list" id="searches-list"></div>
 </div>
 
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
-  <input type="text" class="filter-search" id="filter-transcript" placeholder="Search transcripts..." oninput="applyFiltersToActiveTab()" />
-  <input type="text" class="filter-search" id="filter-search" placeholder="Search by name or title..." oninput="applyFiltersToActiveTab()" />
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <select class="filter-select" id="filter-search-assignment" onchange="applyFiltersToActiveTab()">
+    <option value="">All searches</option>
+  </select>
   <select class="filter-select" id="filter-function" onchange="applyFiltersToActiveTab()">
     <option value="">All functions</option>
     <option value="gtm">GTM</option>
@@ -716,10 +717,9 @@
     <option value="product">Product</option>
   </select>
   <input type="text" class="filter-search" id="filter-location" placeholder="Location..." oninput="applyFiltersToActiveTab()" />
+  <input type="text" class="filter-search" id="filter-transcript" placeholder="Search transcripts..." oninput="applyFiltersToActiveTab()" />
+  <input type="text" class="filter-search" id="filter-search" placeholder="Search by name or title..." oninput="applyFiltersToActiveTab()" />
   <input type="text" class="filter-search" id="filter-skills" placeholder="Skills (comma separated)..." oninput="applyFiltersToActiveTab()" />
-  <select class="filter-select" id="filter-search-assignment" onchange="applyFiltersToActiveTab()">
-    <option value="">All searches</option>
-  </select>
   <button class="filter-clear" onclick="clearFilters()">Clear</button>
 </div>
 
