@@ -1176,7 +1176,7 @@ function applyFilters(candidates, searchAssignmentMap = {}) {
     if (skills) {
   const skillTerms = skills.split(',').map(s => s.trim()).filter(Boolean)
   const candidateSkills = (c.skills || []).map(s => s.toLowerCase())
-  const hasMatch = skillTerms.some(term => 
+  const hasMatch = skillTerms.every(term => 
     candidateSkills.some(s => s.includes(term))
   )
   if (!hasMatch) return false
