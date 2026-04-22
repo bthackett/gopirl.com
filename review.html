@@ -715,7 +715,7 @@
     <option value="product">Product</option>
   </select>
   <input type="text" class="filter-search" id="filter-location" placeholder="Location..." oninput="applyFiltersToActiveTab()" />
-  <input type="text" class="filter-search" id="filter-skills" placeholder="Skill tag..." oninput="applyFiltersToActiveTab()" />
+  <input type="text" class="filter-search" id="filter-skills" placeholder="Skills (comma separated)..." oninput="applyFiltersToActiveTab()" />
   <select class="filter-select" id="filter-search-assignment" onchange="applyFiltersToActiveTab()">
     <option value="">All searches</option>
   </select>
@@ -1173,7 +1173,14 @@ function applyFilters(candidates, searchAssignmentMap = {}) {
     if (search && !`${c.name || ''} ${c.headline || ''} ${c.title || ''}`.toLowerCase().includes(search)) return false
     if (fn && c.job_function !== fn) return false
     if (location && !c.location?.toLowerCase().includes(location)) return false
-    if (skills && !(c.skills || []).some(s => s.toLowerCase().includes(skills))) return false
+    if (skills) {
+  const skillTerms = skills.split(',').map(s => s.trim()).filter(Boolean)
+  const candidateSkills = (c.skills || []).map(s => s.toLowerCase())
+  const hasMatch = skillTerms.some(term => 
+    candidateSkills.some(s => s.includes(term))
+  )
+  if (!hasMatch) return false
+}
     if (searchId && !searchAssignmentMap[c.id]?.includes(searchId)) return false
     return true
   })
