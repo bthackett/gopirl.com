@@ -1005,6 +1005,32 @@
     `
   }
 
+  function renderScores(c) {
+  if (!c.ai_score_clarity && !c.ai_score_ai_fluency && !c.ai_score_specificity) return ''
+
+  function scoreClass(val) {
+    return val ? `score-${val}` : ''
+  }
+
+  return `
+    ${c.ai_summary ? `<div class="ai-summary-text">◎ ${c.ai_summary}</div>` : ''}
+    <div class="ai-scores">
+      ${c.ai_score_clarity ? `
+        <div class="ai-score-badge">
+          Clarity <span class="score-val ${scoreClass(c.ai_score_clarity)}">${c.ai_score_clarity}/5</span>
+        </div>` : ''}
+      ${c.ai_score_ai_fluency ? `
+        <div class="ai-score-badge">
+          AI fluency <span class="score-val ${scoreClass(c.ai_score_ai_fluency)}">${c.ai_score_ai_fluency}/5</span>
+        </div>` : ''}
+      ${c.ai_score_specificity ? `
+        <div class="ai-score-badge">
+          Specificity <span class="score-val ${scoreClass(c.ai_score_specificity)}">${c.ai_score_specificity}/5</span>
+        </div>` : ''}
+    </div>
+  `
+}
+
   // ── APPROVE / PASS ──
   async function setApproval(userId, approved, isPass = false) {
   const updateData = approved
