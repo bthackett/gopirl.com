@@ -725,6 +725,76 @@
   margin-top: 2px;
   flex-shrink: 0;
 }
+
+/* ── SCORING LEGEND ── */
+.score-legend-toggle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--purple);
+  cursor: pointer;
+  padding: 0 20px 10px;
+  display: block;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.score-legend-toggle:hover { opacity: 1; }
+
+.score-legend {
+  display: none;
+  margin: 0 20px 14px;
+  background: #0d0d10;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  gap: 10px;
+  flex-direction: column;
+}
+.score-legend.open { display: flex; }
+
+.legend-row { display: flex; flex-direction: column; gap: 3px; }
+.legend-label { font-size: 11px; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.8px; }
+.legend-desc { font-size: 12px; color: #888; line-height: 1.5; }
+.legend-scale { font-size: 11px; color: #666; }
+.legend-scale span { color: #aaa; }
+
+/* ── TRANSCRIPTS ── */
+.transcripts-section { padding: 0 20px 14px; }
+.transcript-toggle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 8px;
+  display: block;
+  transition: color 0.15s;
+}
+.transcript-toggle:hover { color: var(--text); }
+.transcript-list { display: none; flex-direction: column; gap: 8px; }
+.transcript-list.open { display: flex; }
+.transcript-item {
+  background: #0d0d10;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.transcript-item-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 6px;
+}
+.transcript-item-text {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.65;
+}
+.transcript-empty { font-size: 12px; color: var(--subtle); font-style: italic; } 
  
 </style>
 </head>
@@ -1043,9 +1113,17 @@
   function renderScores(c) {
   if (!c.ai_score_clarity && !c.ai_score_ai_fluency && !c.ai_score_specificity) return ''
 
-  function scoreClass(val) {
-    return val ? `score-${val}` : ''
-  }
+  const legendId = `legend-${c.id}`
+  const transcriptId = `transcripts-${c.id}`
+
+  function scoreClass(val) { return val ? `score-${val}` : '' }
+
+  const hasTranscripts = c.transcript_1 || c.transcript_2 || c.transcript_3
+  const transcriptItems = [
+    { label: '60s Intro', text: c.transcript_1 },
+    { label: 'Career Highlight', text: c.transcript_2 },
+    { label: 'AI in Workflow', text: c.transcript_3 },
+  ].filter(t => t.text)
 
   return `
     ${c.ai_summary ? `<div class="ai-summary-text"><span class="ai-summary-icon">✦</span> ${c.ai_summary}</div>` : ''}
@@ -1063,8 +1141,38 @@
           Specificity <span class="score-val ${scoreClass(c.ai_score_specificity)}">${c.ai_score_specificity}/5</span>
         </div>` : ''}
     </div>
+    <span class="score-legend-toggle" onclick="toggleLegend('${legendId}')">How we score ↓</span>
+    <div class="score-legend" id="${legendId}">
+      <div class="legend-row">
+        <div class="legend-label">Clarity</div>
+        <div class="legend-desc">How clearly and directly the candidate communicates.</div>
+        <div class="legend-scale"><span>5</span> — Exceptionally clear and direct &nbsp;·&nbsp; <span>1</span> — Hard to follow</div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-label">AI Fluency</div>
+        <div class="legend-desc">Whether they demonstrate real AI tool usage with specific tools and workflows — not vague claims.</div>
+        <div class="legend-scale"><span>5</span> — Named tools, real workflows &nbsp;·&nbsp; <span>1</span> — "I use AI sometimes"</div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-label">Specificity</div>
+        <div class="legend-desc">Whether they cite real numbers, outcomes, stakes, and their personal contribution.</div>
+        <div class="legend-scale"><span>5</span> — Metrics and ownership throughout &nbsp;·&nbsp; <span>1</span> — All generalities</div>
+      </div>
+    </div>
+    ${hasTranscripts ? `
+    <div class="transcripts-section">
+      <span class="transcript-toggle" onclick="toggleTranscripts('${transcriptId}')">Read transcripts ↓</span>
+      <div class="transcript-list" id="${transcriptId}">
+        ${transcriptItems.map(t => `
+          <div class="transcript-item">
+            <div class="transcript-item-label">${t.label}</div>
+            <div class="transcript-item-text">${t.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : ''}
   `
-} 
+}
 
   // ── NOTES ──
   async function loadNotesForCard(candidateId) {
@@ -1174,6 +1282,21 @@
     t.className = 'toast show ' + type
     setTimeout(() => { t.className = 'toast ' + type }, 2500)
   }
+
+ function toggleLegend(id) {
+   const el = document.getElementById(id)
+   el.classList.toggle('open')
+   const toggle = el.previousElementSibling
+   toggle.textContent = el.classList.contains('open') ? 'How we score ↑' : 'How we score ↓'
+  }
+
+ function toggleTranscripts(id) {
+   const el = document.getElementById(id)
+   el.classList.toggle('open')
+   const toggle = el.previousElementSibling
+   toggle.textContent = el.classList.contains('open') ? 'Read transcripts ↑' : 'Read transcripts ↓'
+ }
+ 
 </script>
 </body>
 </html>
